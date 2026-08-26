@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Sparkles, 
-  Layers, 
-  Cpu, 
   Sliders, 
   RefreshCw, 
-  ArrowRight, 
-  CheckCircle2, 
-  Zap, 
-  TrendingUp, 
   Database,
   Box,
   Binary
@@ -20,11 +14,9 @@ export default function SyntheticStudio() {
   
   const [selectedDebrisType, setSelectedDebrisType] = useState('container');
   const [grazingAngle, setGrazingAngle] = useState(25);
-  const [sonarFreq, setSonarFreq] = useState('450');
   const [sedimentType, setSedimentType] = useState('sand');
   const [speckleNoiseLevel, setSpeckleNoiseLevel] = useState(35);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [stepStage, setStepStage] = useState(3);
 
   const DEBRIS_OPTIONS = [
     { id: 'container', name: '40ft Steel Cargo Container', baseReflectivity: 0.92, heightMeters: 2.6, shadowLengthMeters: 6.8 },
@@ -43,7 +35,7 @@ export default function SyntheticStudio() {
     const w = canvas.width;
     const h = canvas.height;
 
-    ctx.fillStyle = '#050a14';
+    ctx.fillStyle = '#050505';
     ctx.fillRect(0, 0, w, h);
 
     const imgData = ctx.createImageData(w, h);
@@ -87,6 +79,7 @@ export default function SyntheticStudio() {
 
         intensity = Math.min(255, Math.max(0, intensity));
 
+        // Natural Sonar Copper/Amber Backscatter
         data[idx] = Math.min(255, intensity * 1.18);
         data[idx + 1] = Math.min(255, intensity * 0.72);
         data[idx + 2] = Math.min(255, intensity * 0.22);
@@ -96,161 +89,135 @@ export default function SyntheticStudio() {
 
     ctx.putImageData(imgData, 0, 0);
 
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.8)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.strokeRect(centerX - 42, centerY - 25, 84, 50 + calculatedShadowLenPx);
     ctx.setLineDash([]);
 
     ctx.fillStyle = '#00F0FF';
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.fillText(`Synthetic Target: ${currentDebris.name}`, 14, 20);
-    ctx.fillText(`Grazing Angle: ${grazingAngle}° | Calc Shadow: ${currentDebris.shadowLengthMeters}m`, 14, 36);
+    ctx.font = '10px monospace';
+    ctx.fillText(`> TARGET: ${currentDebris.name}`, 14, 20);
+    ctx.fillText(`> GRAZING_ANGLE: ${grazingAngle}° | CALC_SHADOW: ${currentDebris.shadowLengthMeters}m`, 14, 36);
 
-  }, [selectedDebrisType, grazingAngle, sonarFreq, sedimentType, speckleNoiseLevel, currentDebris]);
+  }, [selectedDebrisType, grazingAngle, sedimentType, speckleNoiseLevel, currentDebris]);
 
   const handleSynthesize = () => {
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-    }, 600);
+    }, 500);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-mono">
       
       {/* Top Banner */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shadow-lg"
+        className="bg-black border border-neutral-800 rounded p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl"
       >
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
-              <Sparkles className="w-5 h-5" />
+            <span className="p-1.5 rounded bg-neutral-900 border border-neutral-700 text-white">
+              <Sparkles className="w-4 h-4" />
             </span>
-            <h2 className="text-lg font-bold text-white font-mono">
-              Synthetic Sonar Data Generator & CycleGAN Acoustic Simulator
+            <h2 className="text-sm font-bold text-white">
+              &gt; SYNTHETIC_SONAR_CYCLEGAN_SIMULATOR
             </h2>
-            <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-mono font-bold">
-              SIH KEY TECHNICAL USP
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-900 text-white border border-neutral-700 font-bold">
+              [KEY_TECHNICAL_USP]
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Overcoming real-world underwater dataset scarcity by translating 3D CAD/Optical debris models into physically accurate Side-Scan Sonar acoustic backscatter with ray-traced shadows.
+          <p className="text-[11px] text-neutral-400 mt-1">
+            Overcomes underwater data scarcity by translating 3D CAD/Optical debris models into physically accurate SSS acoustic backscatter with ray-traced shadows.
           </p>
         </div>
 
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
+        <button
           onClick={handleSynthesize}
           disabled={isGenerating}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-cyan-500 hover:from-amber-400 hover:to-cyan-400 text-slate-950 rounded-lg text-xs font-mono font-bold transition-all shadow-lg shadow-amber-500/20"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-white text-white hover:text-black border border-neutral-700 hover:border-white rounded text-xs font-mono font-bold transition-all cursor-pointer"
         >
-          <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-          <span>{isGenerating ? 'Synthesizing Pings...' : 'Run Physics Synthesis'}</span>
-        </motion.button>
+          <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+          <span>{isGenerating ? '[ SYNTHESIZING... ]' : '[ RUN_PHYSICS_SYNTHESIS ]'}</span>
+        </button>
       </motion.div>
 
-      {/* Model Performance Comparison Stat Box with Motion */}
+      {/* Model Performance Comparison Stat Box */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <motion.div 
-          whileHover={{ y: -3 }}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3 shadow-md"
-        >
-          <div className="p-3 rounded-lg bg-red-500/10 text-red-400 border border-red-500/30">
-            <Database className="w-5 h-5" />
+        <div className="bg-black border border-neutral-800 rounded p-3 flex items-center gap-3">
+          <div className="p-2.5 rounded bg-neutral-900 text-white border border-neutral-700">
+            <Database className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] font-mono text-slate-400 block">Baseline (Real Sonar Only - 210 samples)</span>
-            <span className="text-xl font-bold font-mono text-slate-300">68.4% mAP@50</span>
+            <span className="text-[9px] text-neutral-500 block">[BASELINE: REAL ONLY - 210 SAMPLES]</span>
+            <span className="text-lg font-bold text-white">68.4% mAP@50</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          whileHover={{ y: -3 }}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3 shadow-md"
-        >
-          <div className="p-3 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-            <TrendingUp className="w-5 h-5" />
+        <div className="bg-black border border-neutral-800 rounded p-3 flex items-center gap-3">
+          <div className="p-2.5 rounded bg-neutral-900 text-white border border-neutral-700">
+            <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] font-mono text-slate-400 block">With Synthetic Augmentation (+15,000 Pings)</span>
-            <span className="text-xl font-bold font-mono text-emerald-400 glow-emerald">94.8% mAP@50 (+26.4%)</span>
+            <span className="text-[9px] text-neutral-500 block">[WITH SYNTHETIC AUGMENTATION +15K PINGS]</span>
+            <span className="text-lg font-bold text-white">94.8% mAP@50 (+26.4%)</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          whileHover={{ y: -3 }}
-          className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 flex items-center gap-3 shadow-md"
-        >
-          <div className="p-3 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-            <Zap className="w-5 h-5" />
+        <div className="bg-black border border-neutral-800 rounded p-3 flex items-center gap-3">
+          <div className="p-2.5 rounded bg-neutral-900 text-white border border-neutral-700">
+            <Binary className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] font-mono text-slate-400 block">Few-Shot Domain Adaptation Loss</span>
-            <span className="text-xl font-bold font-mono text-cyan-300">0.0142 L_cycle</span>
+            <span className="text-[9px] text-neutral-500 block">[DOMAIN ADAPTATION LOSS]</span>
+            <span className="text-lg font-bold text-white">0.0142 L_cycle</span>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* 3-Step Translation Pipeline Visualizer */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 shadow-lg">
-        <span className="text-xs font-bold text-slate-200 font-mono block">
-          End-to-End Generative Acoustic Translation Pipeline:
+      <div className="bg-black border border-neutral-800 rounded p-3.5 space-y-3 shadow-lg">
+        <span className="text-xs font-bold text-white block">
+          &gt; END_TO_END_ACOUSTIC_TRANSLATION_PIPELINE:
         </span>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
           
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className={`p-3.5 rounded-xl border transition-all ${
-              stepStage === 1 ? 'bg-cyan-950/40 border-cyan-400 shadow-md' : 'bg-slate-950/80 border-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-400 font-bold">STAGE 1</span>
-              <Box className="w-4 h-4 text-cyan-400" />
+          <div className="p-3 rounded border bg-neutral-950 border-neutral-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-black text-white border border-neutral-700 font-bold">[STAGE_01]</span>
+              <Box className="w-3.5 h-3.5 text-white" />
             </div>
-            <h4 className="text-sm font-bold text-white font-mono">3D CAD & Optical RGB Prior</h4>
-            <p className="text-xs text-slate-400 mt-1">
-              Ingests 3D surface meshes, material density, and dimensional CAD models of submerged marine debris.
+            <h4 className="text-xs font-bold text-white">3D CAD &amp; Optical Mesh</h4>
+            <p className="text-[11px] text-neutral-400 mt-1">
+              Ingests surface meshes, material density, and dimensional CAD models of submerged marine debris.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className={`p-3.5 rounded-xl border transition-all ${
-              stepStage === 2 ? 'bg-cyan-950/40 border-cyan-400 shadow-md' : 'bg-slate-950/80 border-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-bold">STAGE 2</span>
-              <Binary className="w-4 h-4 text-amber-400" />
+          <div className="p-3 rounded border bg-neutral-950 border-neutral-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-black text-white border border-neutral-700 font-bold">[STAGE_02]</span>
+              <Binary className="w-3.5 h-3.5 text-white" />
             </div>
-            <h4 className="text-sm font-bold text-white font-mono">Acoustic Ray-Tracing & Shadow Engine</h4>
-            <p className="text-xs text-slate-400 mt-1">
+            <h4 className="text-xs font-bold text-white">Ray-Tracing &amp; Shadows</h4>
+            <p className="text-[11px] text-neutral-400 mt-1">
               Simulates grazing angle sonar pings, Lambertian backscatter, and acoustic occlusion shadows.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 1.02 }}
-            className={`p-3.5 rounded-xl border transition-all ${
-              stepStage === 3 ? 'bg-cyan-950/40 border-cyan-400 shadow-md' : 'bg-slate-950/80 border-slate-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-bold">STAGE 3</span>
-              <Sparkles className="w-4 h-4 text-emerald-400" />
+          <div className="p-3 rounded border bg-neutral-950 border-neutral-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-black text-white border border-neutral-700 font-bold">[STAGE_03]</span>
+              <Sparkles className="w-3.5 h-3.5 text-white" />
             </div>
-            <h4 className="text-sm font-bold text-white font-mono">CycleGAN Speckle Injection</h4>
-            <p className="text-xs text-slate-400 mt-1">
-              Adds realistic Rayleigh speckle noise, water column attenuation, and gain time-variable curve (TVG).
+            <h4 className="text-xs font-bold text-white">CycleGAN Speckle Injection</h4>
+            <p className="text-[11px] text-neutral-400 mt-1">
+              Adds realistic Rayleigh speckle noise, water column attenuation, and time-variable gain curves.
             </p>
-          </motion.div>
+          </div>
 
         </div>
       </div>
@@ -259,20 +226,20 @@ export default function SyntheticStudio() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Controls (5 Cols) */}
-        <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 shadow-xl">
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            <Sliders className="w-4 h-4 text-cyan-400" />
-            <h3 className="text-sm font-bold text-white font-mono">Acoustic Physics & GAN Parameters</h3>
+        <div className="lg:col-span-5 bg-black border border-neutral-800 rounded p-3.5 space-y-3.5 shadow-xl text-xs">
+          <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
+            <Sliders className="w-3.5 h-3.5 text-white" />
+            <h3 className="text-xs font-bold text-white">&gt; GAN_&amp;_PHYSICS_PARAMETERS</h3>
           </div>
 
-          <div className="space-y-3 font-mono text-xs">
+          <div className="space-y-3 font-mono">
             
             <div>
-              <label className="text-slate-400 block mb-1">Target Object Geometry:</label>
+              <label className="text-neutral-400 block mb-1 text-[10px]">[TARGET_GEOMETRY]:</label>
               <select
                 value={selectedDebrisType}
                 onChange={(e) => setSelectedDebrisType(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200"
+                className="w-full bg-neutral-950 border border-neutral-800 rounded px-2 py-1 text-white text-xs"
               >
                 {DEBRIS_OPTIONS.map((d) => (
                   <option key={d.id} value={d.id}>{d.name} (H: {d.heightMeters}m)</option>
@@ -281,9 +248,9 @@ export default function SyntheticStudio() {
             </div>
 
             <div>
-              <div className="flex justify-between text-slate-400 mb-1">
-                <span>Grazing Angle (θ):</span>
-                <strong className="text-amber-400">{grazingAngle}°</strong>
+              <div className="flex justify-between text-neutral-400 mb-1 text-[10px]">
+                <span>GRAZING_ANGLE (θ):</span>
+                <strong className="text-white">{grazingAngle}°</strong>
               </div>
               <input
                 type="range"
@@ -292,14 +259,14 @@ export default function SyntheticStudio() {
                 step="1"
                 value={grazingAngle}
                 onChange={(e) => setGrazingAngle(Number(e.target.value))}
-                className="w-full accent-amber-500"
+                className="w-full accent-white"
               />
             </div>
 
             <div>
-              <div className="flex justify-between text-slate-400 mb-1">
-                <span>Acoustic Speckle Noise Level:</span>
-                <strong className="text-cyan-400">{speckleNoiseLevel}%</strong>
+              <div className="flex justify-between text-neutral-400 mb-1 text-[10px]">
+                <span>SPECKLE_NOISE_LEVEL:</span>
+                <strong className="text-white">{speckleNoiseLevel}%</strong>
               </div>
               <input
                 type="range"
@@ -308,21 +275,21 @@ export default function SyntheticStudio() {
                 step="5"
                 value={speckleNoiseLevel}
                 onChange={(e) => setSpeckleNoiseLevel(Number(e.target.value))}
-                className="w-full accent-cyan-500"
+                className="w-full accent-white"
               />
             </div>
 
             <div>
-              <label className="text-slate-400 block mb-1">Seafloor Sediment Type:</label>
+              <label className="text-neutral-400 block mb-1 text-[10px]">[SEDIMENT_TYPE]:</label>
               <div className="grid grid-cols-3 gap-2">
                 {['sand', 'gravel', 'mud'].map((type) => (
                   <button
                     key={type}
                     onClick={() => setSedimentType(type)}
-                    className={`py-1.5 px-2 rounded capitalize transition-all border ${
+                    className={`py-1 px-2 rounded uppercase text-xs transition-all border cursor-pointer ${
                       sedimentType === type
-                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold'
-                        : 'bg-slate-950 text-slate-400 border-slate-800'
+                        ? 'bg-white text-black font-bold border-white'
+                        : 'bg-neutral-950 text-neutral-400 border-neutral-800'
                     }`}
                   >
                     {type}
@@ -333,41 +300,41 @@ export default function SyntheticStudio() {
 
           </div>
 
-          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs font-mono space-y-1.5">
+          <div className="p-2.5 bg-neutral-950 rounded border border-neutral-800 text-[11px] space-y-1">
             <div className="flex justify-between">
-              <span className="text-slate-400">Material Reflectivity:</span>
-              <span className="text-emerald-400 font-bold">{(currentDebris.baseReflectivity * 100).toFixed(0)}%</span>
+              <span className="text-neutral-400">MATERIAL_REFLECTIVITY:</span>
+              <span className="text-white font-bold">{(currentDebris.baseReflectivity * 100).toFixed(0)}%</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Ray-Traced Shadow:</span>
-              <span className="text-amber-400 font-bold">{currentDebris.shadowLengthMeters} meters</span>
+              <span className="text-neutral-400">RAY_TRACED_SHADOW:</span>
+              <span className="text-white font-bold">{currentDebris.shadowLengthMeters}m</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Target 3D Height:</span>
-              <span className="text-cyan-400 font-bold">{currentDebris.heightMeters} meters</span>
+              <span className="text-neutral-400">TARGET_3D_HEIGHT:</span>
+              <span className="text-white font-bold">{currentDebris.heightMeters}m</span>
             </div>
           </div>
         </div>
 
         {/* Live Synthesized Sonar Canvas (7 Cols) */}
-        <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-          <div className="bg-slate-950/80 px-4 py-2 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
-            <span className="text-cyan-400 font-bold">SYNTHESIZED ACOUSTIC OUTPUT (CYCLEGAN + RAY TRACING)</span>
-            <span className="text-emerald-400">Ready for YOLOv8 Training</span>
+        <div className="lg:col-span-7 bg-black border border-neutral-800 rounded overflow-hidden shadow-2xl">
+          <div className="bg-black px-3 py-1.5 border-b border-neutral-800 flex items-center justify-between text-[11px] font-mono">
+            <span className="text-white font-bold">[CYCLEGAN_SYNTHESIS_STREAM]</span>
+            <span className="text-neutral-400">[YOLO-11_TRAIN_READY]</span>
           </div>
 
-          <div className="p-3 bg-black flex items-center justify-center">
+          <div className="p-2.5 bg-black flex items-center justify-center">
             <canvas
               ref={canvasRef}
               width={560}
               height={380}
-              className="w-full h-auto rounded border border-slate-800 object-contain"
+              className="w-full h-auto rounded border border-neutral-800 object-contain"
             />
           </div>
 
-          <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Augmentation Factor: <strong>75x Data Multiplier</strong></span>
-            <span className="text-cyan-400">Auto-Exported to YOLO Dataset Format</span>
+          <div className="p-2.5 bg-black border-t border-neutral-800 flex items-center justify-between text-[11px] text-neutral-400">
+            <span>AUGMENTATION_FACTOR: <strong className="text-white">75x DATA_MULTIPLIER</strong></span>
+            <span className="text-white font-bold">[YOLO_FORMAT_EXPORTED]</span>
           </div>
         </div>
 

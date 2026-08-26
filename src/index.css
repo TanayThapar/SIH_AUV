@@ -24,42 +24,6 @@
   --text-muted: #8a8a8a;
 }
 
-[data-theme="terminal-green"] {
-  --bg: #040805;
-  --surface: #0a120c;
-  --surface-elevated: #101d13;
-  --border: #1b3322;
-  --primary: #22c55e;
-  --secondary: #16a34a;
-  --accent: #4ade80;
-  --text: #e8fdf0;
-  --text-muted: #86efac;
-}
-
-[data-theme="terminal-amber"] {
-  --bg: #080602;
-  --surface: #120d05;
-  --surface-elevated: #1c1408;
-  --border: #33240e;
-  --primary: #f59e0b;
-  --secondary: #d97706;
-  --accent: #fbbf24;
-  --text: #fffbeb;
-  --text-muted: #fcd34d;
-}
-
-[data-theme="stealth-carbon"] {
-  --bg: #08090c;
-  --surface: #111318;
-  --surface-elevated: #181b22;
-  --border: #282c37;
-  --primary: #e2e8f0;
-  --secondary: #94a3b8;
-  --accent: #cbd5e1;
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
-}
-
 @layer base {
   body {
     background-color: var(--bg, #050505);
@@ -85,18 +49,6 @@
 /* Monospaced Glow Utilities */
 .glow-mono {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-}
-
-.glow-terminal-green {
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
-}
-
-.glow-terminal-amber {
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
-}
-
-.glow-carbon {
-  box-shadow: 0 0 10px rgba(226, 232, 240, 0.25);
 }
 
 /* Terminal Blinking Cursor */

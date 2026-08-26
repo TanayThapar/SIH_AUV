@@ -3,7 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MapPin, 
   Compass, 
-  Eye
+  Eye,
+  Download,
+  FileSpreadsheet,
+  Layers,
+  CheckCircle2,
+  Share2
 } from 'lucide-react';
 import { PRESET_SAMPLES, SURVEY_STATS } from '../data/sonarSamples';
 import L from 'leaflet';
@@ -18,6 +23,7 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
   const [showSwathCorridor, setShowSwathCorridor] = useState(true);
   const [showHeatmapZones, setShowHeatmapZones] = useState(true);
   const [activePin, setActivePin] = useState(PRESET_SAMPLES[0]);
+  const [exportNotice, setExportNotice] = useState(null);
 
   const centerLat = 14.5;
   const centerLng = 75.5;
@@ -38,12 +44,10 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
         maxZoom: 18,
       }).addTo(map);
 
-      // Layer group to easily manage markers/polygons without recreating the map
       const markersLayer = L.layerGroup().addTo(map);
       markersLayerRef.current = markersLayer;
       mapInstanceRef.current = map;
 
-      // Invalidate size to handle Framer Motion / flex layout sizing
       const resizeTimer = setTimeout(() => {
         map.invalidateSize();
       }, 200);
@@ -73,10 +77,10 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
     if (showSwathCorridor) {
       const trackPoints = PRESET_SAMPLES.map(s => [s.coordinates.lat, s.coordinates.lng]);
       const polyline = L.polyline(trackPoints, {
-        color: '#00f0ff',
-        weight: 3,
-        dashArray: '6, 8',
-        opacity: 0.85
+        color: '#ffffff',
+        weight: 2,
+        dashArray: '4, 6',
+        opacity: 0.9
       });
       markersLayer.addLayer(polyline);
 
@@ -85,11 +89,11 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
         [9.5, 76.5], [11.5, 80.2], [13.5, 80.5],
         [15.5, 74.0], [19.5, 71.0]
       ], {
-        color: '#00f0ff',
-        fillColor: '#00f0ff',
-        fillOpacity: 0.08,
+        color: '#ffffff',
+        fillColor: '#ffffff',
+        fillOpacity: 0.05,
         weight: 1,
-        dashArray: '4, 4'
+        dashArray: '3, 3'
       });
       markersLayer.addLayer(swathPolygon);
     }
@@ -99,7 +103,8 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
         const circle = L.circle([sample.coordinates.lat, sample.coordinates.lng], {
           color: sample.riskLevel === 'CRITICAL' ? '#ef4444' : '#f59e0b',
           fillColor: sample.riskLevel === 'CRITICAL' ? '#ef4444' : '#f59e0b',
-          fillOpacity: 0.25,
+          fillOpacity: 0.15,
+          weight: 1.5,
           radius: sample.riskLevel === 'CRITICAL' ? 35000 : 25000
         });
         markersLayer.addLayer(circle);
@@ -107,27 +112,27 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
     }
 
     filteredSamples.forEach(sample => {
-      const isCritical = sample.riskLevel === 'CRITICAL';
-      const isHigh = sample.riskLevel === 'HIGH';
-
+      const pinColor = sample.riskLevel === 'CRITICAL' ? '#ef4444' : sample.riskLevel === 'HIGH' ? '#f59e0b' : '#3b82f6';
+      
       const pinHtml = `
         <div style="
-          width: 28px; height: 28px;
-          background: ${isCritical ? '#ef4444' : isHigh ? '#f59e0b' : '#10b981'};
-          border: 2px solid #ffffff; border-radius: 50%;
+          width: 26px; height: 26px;
+          background: #000000;
+          border: 2px solid ${pinColor};
+          border-radius: 4px;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 0 14px ${isCritical ? 'rgba(239,68,68,0.8)' : 'rgba(245,158,11,0.8)'};
+          box-shadow: 0 0 10px ${pinColor}88;
           cursor: pointer;
         ">
-          <div style="width: 8px; height: 8px; background: white; border-radius: 50%;"></div>
+          <div style="width: 8px; height: 8px; background: ${pinColor}; border-radius: 2px;"></div>
         </div>
       `;
 
       const customIcon = L.divIcon({
         className: 'custom-sonar-pin',
         html: pinHtml,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
       });
 
       const marker = L.marker([sample.coordinates.lat, sample.coordinates.lng], { icon: customIcon })
@@ -147,70 +152,187 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
     }
   };
 
+  // Export GeoJSON hydrographic layer
+  const handleExportGeoJSON = () => {
+    const geoJsonData = {
+      type: 'FeatureCollection',
+      name: 'AeroAqua_DeepScan_Seabed_Hazards_2026',
+      crs: {
+        type: 'name',
+        properties: { name: 'urn:ogc:def:crs:OGC:1.3:CRS84' }
+      },
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        surveyor: 'National Institute of Oceanography (NIO) / Indian Coast Guard',
+        missionId: 'SIH-2026-AUV-DEEPSCAN-ALPHA',
+        totalFeatures: PRESET_SAMPLES.length
+      },
+      features: PRESET_SAMPLES.map(sample => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [sample.coordinates.lng, sample.coordinates.lat, -sample.depth]
+        },
+        properties: {
+          id: sample.id,
+          name: sample.name,
+          category: sample.category,
+          riskLevel: sample.riskLevel,
+          riskScore: sample.riskScore,
+          waterDepthMeters: sample.depth,
+          auvAltitudeMeters: sample.altitude,
+          slantRangeMeters: sample.slantRange,
+          shadowLengthMeters: sample.shadowLength,
+          estHeightMeters: sample.dimensions.estHeight,
+          dimensions: `${sample.dimensions.length} x ${sample.dimensions.width}`,
+          cleanupPriority: sample.cleanPriority,
+          locationName: sample.coordinates.location,
+          timestamp: sample.timestamp,
+          acousticFrequency: sample.sonarParams?.frequency || '450 kHz'
+        }
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(geoJsonData, null, 2)], { type: 'application/geo+json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepScan_Seabed_Debris_Survey_${new Date().toISOString().slice(0,10)}.geojson`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setExportNotice('Exported GeoJSON (QGIS/ArcGIS ready)');
+    setTimeout(() => setExportNotice(null), 3000);
+  };
+
+  // Export CSV table
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Target Name', 'Category', 'Risk Level', 'Risk Score', 'Lat', 'Lng', 'Depth (m)', 'Est Height', 'Priority', 'Location'];
+    const rows = PRESET_SAMPLES.map(s => [
+      s.id,
+      `"${s.name}"`,
+      `"${s.category}"`,
+      s.riskLevel,
+      s.riskScore,
+      s.coordinates.lat,
+      s.coordinates.lng,
+      s.depth,
+      `"${s.dimensions.estHeight}"`,
+      `"${s.cleanPriority}"`,
+      `"${s.coordinates.location}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `DeepScan_Marine_Debris_Log_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setExportNotice('Exported CSV Debris Table');
+    setTimeout(() => setExportNotice(null), 3000);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-mono">
       
       {/* Top Banner & GIS Toolbar */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 shadow-lg"
+        className="bg-black border border-neutral-800 rounded p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl"
       >
         <div>
-          <h2 className="text-lg font-bold text-white font-mono flex items-center gap-2.5">
-            <span className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-              <MapPin className="w-5 h-5" />
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <span className="p-1.5 rounded bg-neutral-900 border border-neutral-700 text-white">
+              <MapPin className="w-4 h-4" />
             </span>
-            Geospatial Debris Mapping & Bathymetric GIS Hub
+            &gt; GEOSPATIAL_BATHYMETRIC_GIS_HUB
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Real-time georeferencing of AUV Side-Scan Sonar tracklines with seabed debris clustering and density heatmaps.
+          <p className="text-[11px] text-neutral-400 mt-0.5">
+            Georeferencing of AUV Side-Scan Sonar tracklines with seabed debris clustering &amp; standard GIS export.
           </p>
         </div>
 
-        {/* Layer Toggles & Filter Pills */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-mono">
+        {/* Export & Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          
+          {/* Quick Notice Pill */}
+          <AnimatePresence>
+            {exportNotice && (
+              <motion.span
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-[10px] bg-neutral-900 text-white border border-neutral-600 px-2 py-1 rounded flex items-center gap-1 font-bold"
+              >
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                {exportNotice}
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleExportGeoJSON}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-white text-white hover:text-black border border-neutral-700 hover:border-white rounded text-xs font-mono font-bold transition-all cursor-pointer shadow-md"
+            title="Download standard GeoJSON for QGIS / ArcGIS (Key: E)"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>[ EXPORT_GEOJSON ]</span>
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700 rounded text-xs font-mono font-bold transition-all cursor-pointer"
+            title="Download CSV spreadsheet"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">CSV</span>
+          </motion.button>
+
+          {/* Layer Filter Pills */}
+          <div className="flex items-center gap-1 bg-black p-0.5 rounded border border-neutral-800 text-[11px]">
             {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM'].map((lvl) => (
-              <motion.button
+              <button
                 key={lvl}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
                 onClick={() => setSelectedFilter(lvl)}
-                className={`px-2.5 py-1 rounded transition-all relative ${
-                  selectedFilter === lvl ? 'text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer font-bold ${
+                  selectedFilter === lvl ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                {selectedFilter === lvl && (
-                  <motion.div
-                    layoutId="filterPill"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                    className="absolute inset-0 bg-cyan-500/20 border border-cyan-400/50 rounded"
-                  />
-                )}
-                <span className="relative z-10">{lvl}</span>
-              </motion.button>
+                [{lvl}]
+              </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-mono text-slate-300 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
-            <label className="flex items-center gap-1.5 cursor-pointer">
+          <div className="flex items-center gap-2.5 text-[11px] text-neutral-300 bg-black px-2.5 py-1 rounded border border-neutral-800">
+            <label className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showSwathCorridor}
                 onChange={(e) => setShowSwathCorridor(e.target.checked)}
-                className="accent-cyan-500 rounded"
+                className="accent-white"
               />
-              AUV Swath Path
+              SWATH_PATH
             </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
+            <label className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
                 checked={showHeatmapZones}
                 onChange={(e) => setShowHeatmapZones(e.target.checked)}
-                className="accent-red-500 rounded"
+                className="accent-white"
               />
-              Density Heatmap
+              HEATMAP
             </label>
           </div>
         </div>
@@ -220,19 +342,14 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Leaflet Map (8 Cols) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl relative"
-        >
-          <div className="bg-slate-950/80 px-4 py-2 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-2 text-cyan-400 font-bold">
-              <Compass className="w-4 h-4 text-cyan-400 animate-spin" style={{ animationDuration: '30s' }} />
-              <span>COASTAL MISSION SECTOR: ARABIAN SEA & BAY OF BENGAL</span>
+        <div className="lg:col-span-8 bg-black border border-neutral-800 rounded overflow-hidden shadow-2xl relative">
+          <div className="bg-black px-3 py-1.5 border-b border-neutral-800 flex items-center justify-between text-[11px] font-mono">
+            <div className="flex items-center gap-2 text-white font-bold">
+              <Compass className="w-3.5 h-3.5 text-white animate-spin" style={{ animationDuration: '30s' }} />
+              <span>[COASTAL_MISSION_SECTOR: ARABIAN_SEA &amp; BAY_OF_BENGAL]</span>
             </div>
-            <div className="flex items-center gap-3 text-slate-400">
-              <span>Sweep Area: <strong className="text-emerald-400">{SURVEY_STATS.totalSweepAreaSqKm} km²</strong></span>
+            <div className="flex items-center gap-3 text-neutral-400">
+              <span>SWEEP_AREA: <strong className="text-white">{SURVEY_STATS.totalSweepAreaSqKm} km²</strong></span>
             </div>
           </div>
 
@@ -241,119 +358,106 @@ export default function GeospatialMapView({ onSelectSampleForStudio }) {
             <div ref={mapContainerRef} className="w-full h-full" />
 
             {/* Map Legend Overlay */}
-            <div className="absolute bottom-4 left-4 z-[1000] bg-slate-950/95 border border-slate-800 p-3 rounded-lg text-xs font-mono space-y-1.5 shadow-xl backdrop-blur-md">
-              <span className="font-bold text-slate-200 block text-[11px] mb-1">Geospatial Risk Legend:</span>
+            <div className="absolute bottom-3 left-3 z-[1000] bg-black/95 border border-neutral-800 p-2.5 rounded text-[10px] font-mono space-y-1 shadow-xl">
+              <span className="font-bold text-white block mb-0.5">[GEOSPATIAL_LEGEND]:</span>
               {[
-                { color: 'bg-red-500', text: 'text-red-400', label: 'Critical Risk (P0 / P1 Extraction)' },
-                { color: 'bg-amber-500', text: 'text-amber-400', label: 'High Hazard (Navigational obstacle)' },
-                { color: 'bg-emerald-500', text: 'text-emerald-400', label: 'Medium Hazard (Biological / Wreck)' }
+                { label: '[P0_CRITICAL]: Ghost Net / Munition Hazard', color: 'bg-red-500' },
+                { label: '[P1_HIGH]: Metal Drum / Container Debris', color: 'bg-amber-500' },
+                { label: '[P2_MEDIUM]: Acoustic Anomaly / Biological Reef', color: 'bg-blue-500' }
               ].map((leg) => (
-                <div key={leg.label} className={`flex items-center gap-2 ${leg.text}`}>
-                  <span className={`w-3 h-3 rounded-full ${leg.color}`}></span>
+                <div key={leg.label} className="flex items-center gap-1.5 text-neutral-300">
+                  <span className={`w-2 h-2 rounded-sm ${leg.color}`}></span>
                   <span>{leg.label}</span>
                 </div>
               ))}
-              <div className="flex items-center gap-2 text-cyan-400 pt-1 border-t border-slate-800">
-                <span className="w-3 h-0.5 bg-cyan-400"></span>
+              <div className="flex items-center gap-1.5 text-white pt-1 border-t border-neutral-800">
+                <span className="w-3 h-0.5 bg-white"></span>
                 <span>AUV Swath Survey Corridor</span>
               </div>
             </div>
           </div>
 
-        </motion.div>
+        </div>
 
         {/* Right Active Pin Inspector & Geotagged List (4 Cols) */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="lg:col-span-4 space-y-3 font-mono">
           
           {/* Active Target Card */}
           <AnimatePresence mode="wait">
             {activePin && (
-              <motion.div
-                key={activePin.id}
-                initial={{ opacity: 0, x: 16, scale: 0.97 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -16, scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-                className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 shadow-xl"
-              >
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider">
-                    Target Geotag Inspector
+              <div className="bg-black border border-neutral-800 rounded p-3.5 space-y-3 shadow-xl">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                  <span className="text-[10px] text-neutral-400 uppercase">
+                    &gt; GEOTAG_INSPECTOR
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold ${
-                    activePin.riskLevel === 'CRITICAL' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-300'
-                  }`}>
-                    {activePin.riskLevel} PRIORITY
+                  <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-neutral-900 text-white border border-neutral-700">
+                    [{activePin.riskLevel}]
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-white font-mono">{activePin.name}</h3>
-                  <p className="text-xs text-slate-400 font-mono">{activePin.coordinates.location}</p>
+                  <h3 className="text-sm font-bold text-white">&gt; {activePin.name}</h3>
+                  <p className="text-[10px] text-neutral-400">{activePin.coordinates.location}</p>
                 </div>
 
-                <div className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="p-2 bg-neutral-950 rounded border border-neutral-800 grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Latitude</span>
-                    <span className="text-slate-200 font-bold">{activePin.coordinates.lat}° N</span>
+                    <span className="text-neutral-500 text-[9px] block">[LATITUDE]</span>
+                    <span className="text-white font-bold">{activePin.coordinates.lat}° N</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Longitude</span>
-                    <span className="text-slate-200 font-bold">{activePin.coordinates.lng}° E</span>
+                    <span className="text-neutral-500 text-[9px] block">[LONGITUDE]</span>
+                    <span className="text-white font-bold">{activePin.coordinates.lng}° E</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block">Seafloor Depth</span>
-                    <span className="text-cyan-400 font-bold">{activePin.depth} m</span>
+                    <span className="text-neutral-500 text-[9px] block">[DEPTH]</span>
+                    <span className="text-white font-bold">{activePin.depth}m</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 text-[10px] block">AI Confidence</span>
-                    <span className="text-emerald-400 font-bold">{(activePin.anomalyConfidence * 100).toFixed(1)}%</span>
+                    <span className="text-neutral-500 text-[9px] block">[CONFIDENCE]</span>
+                    <span className="text-white font-bold">{(activePin.anomalyConfidence * 100).toFixed(1)}%</span>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300">{activePin.description}</p>
+                <p className="text-xs text-neutral-300">{activePin.description}</p>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
                   onClick={() => onSelectSampleForStudio(activePin)}
-                  className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-mono font-semibold flex items-center justify-center gap-2 transition-all shadow-md shadow-cyan-900/30"
+                  className="w-full py-1.5 bg-neutral-900 hover:bg-white text-white hover:text-black border border-neutral-700 hover:border-white rounded text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
-                  <Eye className="w-4 h-4" />
-                  Analyze Sonar In Acoustic Studio
-                </motion.button>
-              </motion.div>
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>[ ANALYZE_IN_ACOUSTIC_STUDIO ]</span>
+                </button>
+              </div>
             )}
           </AnimatePresence>
 
           {/* Quick Jump Geotagged List */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col h-[280px] shadow-xl">
-            <span className="text-xs font-bold text-slate-200 font-mono block mb-2 pb-2 border-b border-slate-800">
-              Survey Targets ({PRESET_SAMPLES.length}):
+          <div className="bg-black border border-neutral-800 rounded p-3 flex flex-col h-[280px] shadow-xl">
+            <span className="text-xs font-bold text-white block mb-1.5 pb-1.5 border-b border-neutral-800">
+              &gt; SURVEY_TARGETS ({PRESET_SAMPLES.length}):
             </span>
 
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
               {PRESET_SAMPLES.map((sample) => (
-                <motion.div
+                <div
                   key={sample.id}
                   onClick={() => handleFlyTo(sample)}
-                  whileHover={{ scale: 1.02, x: 2 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`p-2 rounded-lg cursor-pointer transition-all border font-mono text-xs ${
+                  className={`p-2 rounded cursor-pointer transition-all border text-xs ${
                     activePin?.id === sample.id
-                      ? 'bg-cyan-950/70 border-cyan-400 text-cyan-200'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                      ? 'bg-neutral-900 border-white text-white'
+                      : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-200 truncate">{sample.name}</span>
-                    <span className="text-[10px] text-slate-500">{sample.depth}m</span>
+                    <span className="font-bold text-white truncate">{sample.name}</span>
+                    <span className="text-[9px] text-neutral-500">{sample.depth}m</span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                  <div className="flex items-center justify-between text-[10px] text-neutral-400 mt-1">
                     <span>{sample.coordinates.location}</span>
-                    <span className="text-cyan-400">Fly To ▶</span>
+                    <span className="text-white hover:underline">[FLY_TO ▶]</span>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>

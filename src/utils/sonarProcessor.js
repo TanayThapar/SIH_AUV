@@ -37,12 +37,11 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
 
   const {
     filterMode = 'raw', // 'raw', 'slant_corrected', 'nadir_removed', 'despeckled', 'clahe'
-    palette = 'copper', // 'copper', 'emerald', 'cyan', 'grayscale'
+    palette = 'copper', // 'copper', 'cyan', 'emerald', 'grayscale'
     showBBoxes = true,
     showHighlights = true,
     showShadows = true,
-    showAnomalyHeatmap = false,
-    interactiveMeasure = null
+    showAnomalyHeatmap = false
   } = options;
 
   // Background base
@@ -124,21 +123,24 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
 
       intensity = Math.min(255, Math.max(0, intensity));
 
-      // Color mapping
+      // Natural Side-Scan Sonar Color Mapping
       if (palette === 'copper') {
+        // Industry-Standard Natural Acoustic Amber / Copper
         data[idx] = Math.min(255, intensity * 1.15); // R
         data[idx + 1] = Math.min(255, intensity * 0.72); // G
         data[idx + 2] = Math.min(255, intensity * 0.22); // B
-      } else if (palette === 'emerald') {
-        data[idx] = Math.min(255, intensity * 0.2);
-        data[idx + 1] = Math.min(255, intensity * 1.1);
-        data[idx + 2] = Math.min(255, intensity * 0.75);
       } else if (palette === 'cyan') {
+        // Acoustic Deep Ocean Blue / Cyan
         data[idx] = Math.min(255, intensity * 0.15);
         data[idx + 1] = Math.min(255, intensity * 0.95);
         data[idx + 2] = Math.min(255, intensity * 1.2);
+      } else if (palette === 'emerald') {
+        // Deep Oceanic Emerald
+        data[idx] = Math.min(255, intensity * 0.2);
+        data[idx + 1] = Math.min(255, intensity * 1.1);
+        data[idx + 2] = Math.min(255, intensity * 0.75);
       } else {
-        // grayscale
+        // Raw Grayscale Monochrome
         data[idx] = intensity;
         data[idx + 1] = intensity;
         data[idx + 2] = intensity;
@@ -151,8 +153,8 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
 
   // Overlay Nadir Centerline
   if (filterMode !== 'nadir_removed') {
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+    ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(nadirCenterX, 0);
@@ -161,8 +163,8 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
     ctx.setLineDash([]);
 
     // Channel labels
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.6)';
-    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.75)';
+    ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
     ctx.fillText('PORT SWATH ◀', 16, 18);
     ctx.fillText('NADIR', nadirCenterX - 16, 18);
     ctx.fillText('▶ STARBOARD SWATH', width - 130, 18);
@@ -196,20 +198,20 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
       const bw = (det.box.w / 100) * width;
       const bh = (det.box.h / 100) * height;
 
-      // 1. Overall Bounding Box
+      // 1. Overall Bounding Box (Cyan Glow)
       ctx.strokeStyle = '#00F0FF';
       ctx.lineWidth = 2;
       ctx.setLineDash([]);
       ctx.strokeRect(bx, by, bw, bh);
 
       // Label badge
-      ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.95)';
       ctx.fillRect(bx, by - 22, Math.max(160, bw), 22);
       ctx.fillStyle = '#030712';
-      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.font = 'bold 11px ui-monospace, SFMono-Regular, monospace';
       ctx.fillText(`${det.label} [${(det.confidence * 100).toFixed(0)}%]`, bx + 6, by - 6);
 
-      // 2. Highlight Box (Acoustic Bright Echo)
+      // 2. Highlight Box (Acoustic Bright Echo - Emerald)
       if (showHighlights && det.highlight) {
         const hx = (det.highlight.x / 100) * width;
         const hy = (det.highlight.y / 100) * height;
@@ -222,11 +224,11 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
         ctx.strokeRect(hx, hy, hw, hh);
 
         ctx.fillStyle = '#10B981';
-        ctx.font = '9px JetBrains Mono, monospace';
+        ctx.font = '9px ui-monospace, SFMono-Regular, monospace';
         ctx.fillText('● HIGHLIGHT CUE', hx + 4, hy + 12);
       }
 
-      // 3. Shadow Box (Acoustic Blind Shadow)
+      // 3. Shadow Box (Acoustic Blind Shadow - Amber)
       if (showShadows && det.shadow) {
         const sx = (det.shadow.x / 100) * width;
         const sy = (det.shadow.y / 100) * height;
@@ -239,14 +241,14 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
         ctx.strokeRect(sx, sy, sw, sh);
 
         ctx.fillStyle = '#F59E0B';
-        ctx.font = '9px JetBrains Mono, monospace';
+        ctx.font = '9px ui-monospace, SFMono-Regular, monospace';
         ctx.fillText(`▲ SHADOW (${det.estHeight})`, sx + 4, sy + 14);
       }
     });
   }
 
   // Draw Range Scale Overlay (Meters)
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
   ctx.lineWidth = 1;
   ctx.setLineDash([]);
   ctx.beginPath();
@@ -259,6 +261,6 @@ export function drawSonarCanvas(canvas, sample, options = {}) {
   ctx.stroke();
 
   ctx.fillStyle = '#ffffff';
-  ctx.font = '10px JetBrains Mono, monospace';
+  ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
   ctx.fillText('10 METERS', 40, height - 26);
 }

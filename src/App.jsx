@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import LiveWaterfallView from './components/LiveWaterfallView';
@@ -9,8 +9,10 @@ import EdgeMetricsView from './components/EdgeMetricsView';
 import ReportGenerator from './components/ReportGenerator';
 import SihPitchGuide from './components/SihPitchGuide';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
+import JudgeTourModal from './components/JudgeTourModal';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import { PRESET_SAMPLES } from './data/sonarSamples';
-import { Radar, Award, RefreshCw } from 'lucide-react';
+import { Radar, Award, RefreshCw, Zap, Keyboard } from 'lucide-react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 function DashboardContent() {
@@ -18,11 +20,64 @@ function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('waterfall');
   const [selectedSample, setSelectedSample] = useState(PRESET_SAMPLES[0]);
+  
+  // Modals
+  const [isJudgeTourOpen, setIsJudgeTourOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [shortcutToast, setShortcutToast] = useState(null);
 
   const handleSelectSampleForStudio = (sample) => {
     setSelectedSample(sample);
     setActiveTab('analysis');
   };
+
+  const showToast = (msg) => {
+    setShortcutToast(msg);
+    setTimeout(() => {
+      setShortcutToast((prev) => (prev === msg ? null : prev));
+    }, 1800);
+  };
+
+  // Global Keyboard Navigation
+  const handleKeyDown = useCallback((e) => {
+    // Ignore input typing
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+    if (e.key === '1') {
+      setActiveTab('waterfall');
+      showToast('Hotkey [1]: Live Waterfall');
+    } else if (e.key === '2') {
+      setActiveTab('analysis');
+      showToast('Hotkey [2]: Acoustic Studio');
+    } else if (e.key === '3') {
+      setActiveTab('map');
+      showToast('Hotkey [3]: Geospatial Map');
+    } else if (e.key === '4') {
+      setActiveTab('synthetic');
+      showToast('Hotkey [4]: GAN Synthesizer');
+    } else if (e.key === '5') {
+      setActiveTab('edge');
+      showToast('Hotkey [5]: Edge Telemetry');
+    } else if (e.key === '6') {
+      setActiveTab('report');
+      showToast('Hotkey [6]: Mission Report');
+    } else if (e.key === '7') {
+      setActiveTab('pitch');
+      showToast('Hotkey [7]: SIH Pitch');
+    } else if (e.key === 'j' || e.key === 'J') {
+      setIsJudgeTourOpen((prev) => !prev);
+    } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      setIsShortcutsOpen((prev) => !prev);
+    } else if (e.key === 'Escape') {
+      setIsJudgeTourOpen(false);
+      setIsShortcutsOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const pageVariants = {
     initial: { opacity: 0, y: 12, scale: 0.99 },
@@ -43,6 +98,43 @@ function DashboardContent() {
       <AnimatePresence>
         {isLoading && (
           <InitialLoadingScreen onComplete={() => setIsLoading(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* 60-Second Judge Tour Modal */}
+      <AnimatePresence>
+        {isJudgeTourOpen && (
+          <JudgeTourModal
+            isOpen={isJudgeTourOpen}
+            onClose={() => setIsJudgeTourOpen(false)}
+            onNavigateTab={setActiveTab}
+            activeTab={activeTab}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Keyboard Shortcuts Modal */}
+      <AnimatePresence>
+        {isShortcutsOpen && (
+          <KeyboardShortcutsModal
+            isOpen={isShortcutsOpen}
+            onClose={() => setIsShortcutsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Hotkey Toast Notification Banner */}
+      <AnimatePresence>
+        {shortcutToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-14 right-6 z-50 bg-black border border-neutral-600 text-white px-3 py-1.5 rounded shadow-2xl text-xs font-mono flex items-center gap-2"
+          >
+            <Keyboard className="w-3.5 h-3.5 text-white" />
+            <span>{shortcutToast}</span>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -72,7 +164,12 @@ function DashboardContent() {
 
       {/* Top Main Navigation */}
       <div className="relative z-50">
-        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Navbar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          onOpenJudgeTour={() => setIsJudgeTourOpen(true)}
+          onOpenShortcuts={() => setIsShortcutsOpen(true)}
+        />
       </div>
 
       {/* Main Content Viewport with Motion Transitions */}
@@ -120,31 +217,40 @@ function DashboardContent() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Footer with Terminal Status Bar */}
-      <footer className="bg-black border-t border-neutral-800 py-3 px-4 text-xs font-mono text-neutral-400 relative z-10 print:hidden">
+      {/* Bottom Footer */}
+      <footer className="bg-black/90 border-t border-neutral-800 py-3 px-4 text-xs font-mono text-neutral-400 relative z-10 print:hidden">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-neutral-300">
-            <div className={`p-1 rounded border ${currentTheme.navLogoBox} transition-colors duration-300`}>
-              <Radar className={`w-3.5 h-3.5 ${currentTheme.navLogoText}`} />
+            <div className="p-1 rounded-md bg-neutral-900 border border-neutral-700 text-white">
+              <Radar className="w-4 h-4" />
             </div>
-            <span className="font-bold text-white tracking-wider">&gt; AEROAQUA_DEEPSCAN_AI</span>
-            <span className="text-neutral-600">|</span>
-            <span className="text-[11px] text-neutral-400">SIH_2026_AUV_SUITE</span>
+            <span className="font-bold text-white tracking-wider font-mono">AeroAqua DeepScan AI</span>
+            <span className="text-neutral-600">•</span>
+            <span className="text-[11px] text-neutral-400">Autonomous Underwater Sonar Analytics (SIH 2026)</span>
           </div>
 
           <div className="flex items-center gap-3 text-neutral-400">
             <button
+              onClick={() => setIsJudgeTourOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white transition-colors cursor-pointer text-[11px] font-bold"
+              title="Launch 60s Tour (Key: J)"
+            >
+              <Zap className="w-3 h-3 text-white" />
+              <span>[60s Jury Tour]</span>
+            </button>
+
+            <button
               onClick={() => setIsLoading(true)}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black hover:bg-neutral-900 border border-neutral-700 text-neutral-300 hover:text-white transition-colors cursor-pointer text-[11px]"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-300 hover:text-white transition-colors cursor-pointer text-[11px]"
               title="Replay System Boot Diagnostics"
             >
               <RefreshCw className="w-3 h-3" />
-              <span>[REBOOT_TTY]</span>
+              <span>Reboot Diagnostics</span>
             </button>
-            <span className="hidden sm:inline text-neutral-500">[NODE: ACTIVE]</span>
-            <div className={`px-2 py-0.5 rounded border ${currentTheme.navBadge} flex items-center gap-1 text-[11px] font-bold`}>
-              <Award className="w-3 h-3 text-amber-400" />
-              <span>[CANDIDATE_2026]</span>
+            <span className="hidden sm:inline text-neutral-500">Node: Active</span>
+            <div className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-700 text-neutral-200 flex items-center gap-1 text-[11px] font-bold">
+              <Award className="w-3.5 h-3.5 text-white" />
+              <span>SIH 2026 Production</span>
             </div>
           </div>
         </div>
@@ -161,4 +267,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-

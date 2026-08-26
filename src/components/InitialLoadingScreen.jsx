@@ -76,7 +76,7 @@ export default function InitialLoadingScreen({ onComplete }) {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="fixed inset-0 z-[9999] bg-[#0f1117] text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden select-none"
+      className="fixed inset-0 z-[9999] bg-black text-neutral-100 flex flex-col items-center justify-center p-4 overflow-hidden select-none"
     >
       {/* Background Animated Ambient Radiance */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -118,7 +118,7 @@ export default function InitialLoadingScreen({ onComplete }) {
           ))}
 
           {/* Compass Tick Ring */}
-          <div className="absolute inset-0 rounded-full border border-slate-800 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-neutral-800 flex items-center justify-center">
             <div 
               className="w-full h-full rounded-full border-2 border-dashed animate-spin" 
               style={{ borderColor: `${currentTheme.primary}33`, animationDuration: '40s' }} 
@@ -143,7 +143,7 @@ export default function InitialLoadingScreen({ onComplete }) {
           <motion.div 
             animate={{ scale: [0.96, 1.04, 0.96] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-slate-900/90 border shadow-2xl flex flex-col items-center justify-center backdrop-blur-xl`}
+            className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-neutral-900/90 border shadow-2xl flex flex-col items-center justify-center backdrop-blur-xl`}
             style={{ 
               borderColor: `${currentTheme.primary}80`,
               boxShadow: `0 0 35px ${currentTheme.primary}44`
