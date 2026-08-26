@@ -11,8 +11,10 @@ import SihPitchGuide from './components/SihPitchGuide';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
 import { PRESET_SAMPLES } from './data/sonarSamples';
 import { Radar, Award, RefreshCw } from 'lucide-react';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
-export default function App() {
+function DashboardContent() {
+  const { currentTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('waterfall');
   const [selectedSample, setSelectedSample] = useState(PRESET_SAMPLES[0]);
@@ -29,7 +31,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div 
+      className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans relative overflow-x-hidden transition-colors duration-500"
+      style={{ backgroundImage: currentTheme.bgRadial }}
+    >
       
       {/* Initial Animated Loading Screen */}
       <AnimatePresence>
@@ -38,27 +43,27 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Background Animated Ambient Lights */}
+      {/* Dynamic Background Animated Ambient Lights */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <motion.div 
           animate={{
             scale: [1, 1.15, 1],
-            opacity: [0.15, 0.25, 0.15],
+            opacity: [0.18, 0.28, 0.18],
             x: [0, 30, 0],
             y: [0, -20, 0]
           }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-32 -left-32 w-96 h-96 bg-cyan-600/20 rounded-full blur-[100px]"
+          className={`absolute -top-32 -left-32 w-96 h-96 ${currentTheme.ambient1} rounded-full blur-[100px] transition-colors duration-500`}
         />
         <motion.div 
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.1, 0.2, 0.1],
+            opacity: [0.12, 0.22, 0.12],
             x: [0, -40, 0],
             y: [0, 30, 0]
           }}
           transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-1/2 -right-32 w-[30rem] h-[30rem] bg-blue-600/15 rounded-full blur-[120px]"
+          className={`absolute top-1/2 -right-32 w-[30rem] h-[30rem] ${currentTheme.ambient2} rounded-full blur-[120px] transition-colors duration-500`}
         />
       </div>
 
@@ -119,9 +124,9 @@ export default function App() {
             <motion.div 
               animate={{ rotate: 360 }} 
               transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-              className="p-1 rounded bg-cyan-950 border border-cyan-800/40 text-cyan-400"
+              className={`p-1 rounded border ${currentTheme.navLogoBox} transition-colors duration-300`}
             >
-              <Radar className="w-3.5 h-3.5" />
+              <Radar className={`w-3.5 h-3.5 ${currentTheme.navLogoText}`} />
             </motion.div>
             <span className="font-bold text-slate-200">AeroAqua DeepScan AI</span>
             <span className="text-slate-600">•</span>
@@ -131,7 +136,7 @@ export default function App() {
           <div className="flex items-center gap-4 text-slate-400">
             <button
               onClick={() => setIsLoading(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
               title="Replay System Boot Diagnostics"
             >
               <RefreshCw className="w-3 h-3" />
@@ -140,7 +145,7 @@ export default function App() {
             <span className="hidden sm:inline">AI Sonar Debris System</span>
             <motion.div 
               whileHover={{ scale: 1.05 }}
-              className="px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-800/50 text-cyan-300 flex items-center gap-1.5 font-bold"
+              className={`px-2.5 py-1 rounded border ${currentTheme.navBadge} flex items-center gap-1.5 font-bold transition-colors duration-300`}
             >
               <Award className="w-3.5 h-3.5 text-amber-400" />
               <span>SIH Candidate</span>
@@ -152,3 +157,12 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <DashboardContent />
+    </ThemeProvider>
+  );
+}
+
