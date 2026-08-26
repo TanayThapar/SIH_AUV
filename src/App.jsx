@@ -32,10 +32,13 @@ function DashboardContent() {
 
   return (
     <div 
-      className="min-h-screen bg-[#0f1117] text-slate-100 flex flex-col font-sans relative overflow-x-hidden transition-colors duration-500"
+      className="min-h-screen bg-[#050505] text-neutral-100 flex flex-col font-mono relative overflow-x-hidden transition-colors duration-500"
       style={{ backgroundImage: currentTheme.bgRadial }}
     >
       
+      {/* CRT Scanline Overlay Texture */}
+      <div className="fixed inset-0 crt-overlay z-40 pointer-events-none opacity-40" />
+
       {/* Initial Animated Loading Screen */}
       <AnimatePresence>
         {isLoading && (
@@ -48,7 +51,7 @@ function DashboardContent() {
         <motion.div 
           animate={{
             scale: [1, 1.15, 1],
-            opacity: [0.18, 0.28, 0.18],
+            opacity: [0.1, 0.2, 0.1],
             x: [0, 30, 0],
             y: [0, -20, 0]
           }}
@@ -58,7 +61,7 @@ function DashboardContent() {
         <motion.div 
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.12, 0.22, 0.12],
+            opacity: [0.08, 0.15, 0.08],
             x: [0, -40, 0],
             y: [0, 30, 0]
           }}
@@ -73,7 +76,7 @@ function DashboardContent() {
       </div>
 
       {/* Main Content Viewport with Motion Transitions */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 relative z-10 font-mono">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -117,39 +120,32 @@ function DashboardContent() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Footer with Motion hover states */}
-      <footer className="bg-slate-950/90 border-t border-slate-900 py-5 px-4 text-xs font-mono text-slate-500 relative z-10 print:hidden backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 text-slate-400">
-            <motion.div 
-              animate={{ rotate: 360 }} 
-              transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-              className={`p-1 rounded border ${currentTheme.navLogoBox} transition-colors duration-300`}
-            >
+      {/* Bottom Footer with Terminal Status Bar */}
+      <footer className="bg-black border-t border-neutral-800 py-3 px-4 text-xs font-mono text-neutral-400 relative z-10 print:hidden">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 text-neutral-300">
+            <div className={`p-1 rounded border ${currentTheme.navLogoBox} transition-colors duration-300`}>
               <Radar className={`w-3.5 h-3.5 ${currentTheme.navLogoText}`} />
-            </motion.div>
-            <span className="font-bold text-slate-200">AeroAqua DeepScan AI</span>
-            <span className="text-slate-600">•</span>
-            <span>Smart India Hackathon (SIH) 2026</span>
+            </div>
+            <span className="font-bold text-white tracking-wider">&gt; AEROAQUA_DEEPSCAN_AI</span>
+            <span className="text-neutral-600">|</span>
+            <span className="text-[11px] text-neutral-400">SIH_2026_AUV_SUITE</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-3 text-neutral-400">
             <button
               onClick={() => setIsLoading(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-black hover:bg-neutral-900 border border-neutral-700 text-neutral-300 hover:text-white transition-colors cursor-pointer text-[11px]"
               title="Replay System Boot Diagnostics"
             >
               <RefreshCw className="w-3 h-3" />
-              <span>Reboot Diagnostics</span>
+              <span>[REBOOT_TTY]</span>
             </button>
-            <span className="hidden sm:inline">AI Sonar Debris System</span>
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className={`px-2.5 py-1 rounded border ${currentTheme.navBadge} flex items-center gap-1.5 font-bold transition-colors duration-300`}
-            >
-              <Award className="w-3.5 h-3.5 text-amber-400" />
-              <span>SIH Candidate</span>
-            </motion.div>
+            <span className="hidden sm:inline text-neutral-500">[NODE: ACTIVE]</span>
+            <div className={`px-2 py-0.5 rounded border ${currentTheme.navBadge} flex items-center gap-1 text-[11px] font-bold`}>
+              <Award className="w-3 h-3 text-amber-400" />
+              <span>[CANDIDATE_2026]</span>
+            </div>
           </div>
         </div>
       </footer>
