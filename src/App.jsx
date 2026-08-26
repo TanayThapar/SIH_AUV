@@ -32,7 +32,7 @@ function DashboardContent() {
 
   return (
     <div 
-      className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans relative overflow-x-hidden transition-colors duration-500"
+      className="min-h-screen bg-[#0f1117] text-slate-100 flex flex-col font-sans relative overflow-x-hidden transition-colors duration-500"
       style={{ backgroundImage: currentTheme.bgRadial }}
     >
       

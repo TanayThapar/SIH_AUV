@@ -76,7 +76,7 @@ export default function InitialLoadingScreen({ onComplete }) {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="fixed inset-0 z-[9999] bg-[#020617] text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden select-none"
+      className="fixed inset-0 z-[9999] bg-[#0f1117] text-slate-100 flex flex-col items-center justify-center p-4 overflow-hidden select-none"
     >
       {/* Background Animated Ambient Radiance */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">

@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #060B09;
-  --surface: #0D1814;
-  --surface-elevated: #14251F;
-  --border: #1D3B31;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #10B981;
   --secondary: #059669;
   --accent: #34D399;
-  --text: #F0FDF4;
-  --text-muted: #86EFAC;
+  --text: #F1F5F9;
+  --text-muted: #94A3B8;
 }
 
 [data-theme="nord-professional"] {
-  --bg: #070B12;
-  --surface: #0E1522;
-  --surface-elevated: #172033;
-  --border: #27354E;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #81A1C1;
   --secondary: #5E81AC;
   --accent: #88C0D0;
@@ -25,22 +25,22 @@
 }
 
 [data-theme="tactical-emerald"] {
-  --bg: #060B09;
-  --surface: #0D1814;
-  --surface-elevated: #14251F;
-  --border: #1D3B31;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #10B981;
   --secondary: #059669;
   --accent: #34D399;
-  --text: #F0FDF4;
-  --text-muted: #86EFAC;
+  --text: #F1F5F9;
+  --text-muted: #94A3B8;
 }
 
 [data-theme="stealth-carbon"] {
-  --bg: #08090C;
-  --surface: #12141C;
-  --surface-elevated: #1A1D29;
-  --border: #282C3D;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #E2E8F0;
   --secondary: #94A3B8;
   --accent: #CBD5E1;
@@ -49,10 +49,10 @@
 }
 
 [data-theme="phosphor-amber"] {
-  --bg: #0D0904;
-  --surface: #1A1308;
-  --surface-elevated: #261D0F;
-  --border: #423219;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #F59E0B;
   --secondary: #D97706;
   --accent: #FBBF24;
@@ -61,10 +61,10 @@
 }
 
 [data-theme="abyss-violet"] {
-  --bg: #0B0612;
-  --surface: #170E24;
-  --surface-elevated: #231638;
-  --border: #3B255E;
+  --bg: #0f1117;
+  --surface: #161a23;
+  --surface-elevated: #1e2330;
+  --border: #283040;
   --primary: #A855F7;
   --secondary: #8B5CF6;
   --accent: #C084FC;
@@ -74,12 +74,10 @@
 
 @layer base {
   body {
-    background-color: var(--bg, #07090e);
+    background-color: #0f1117;
     color: var(--text, #f1f5f9);
     font-family: 'Inter', system-ui, sans-serif;
-    background-image: 
-      radial-gradient(at 50% 0%, rgba(30, 41, 59, 0.3) 0px, transparent 60%),
-      radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.2) 0px, transparent 50%);
+    background-image: radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 70%);
   }
 }
 
