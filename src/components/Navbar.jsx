@@ -23,7 +23,8 @@ export default function Navbar({ activeTab, setActiveTab, onOpenJudgeTour, onOpe
     { id: 'synthetic', label: 'GAN Synthesizer', icon: Sparkles, badge: 'USP' },
     { id: 'edge', label: 'Edge Telemetry', icon: Cpu },
     { id: 'report', label: 'Mission Report', icon: FileText },
-    { id: 'pitch', label: 'SIH Pitch', icon: Compass, highlight: true }
+    { id: 'pitch', label: 'SIH Pitch', icon: Compass, highlight: true },
+    { id: 'hardware', label: 'HW Simulator', icon: Cpu, badge: 'SIM' }
   ];
 
   return (

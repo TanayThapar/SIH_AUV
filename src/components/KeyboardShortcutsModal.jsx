@@ -10,6 +10,7 @@ export const SHORTCUTS = [
   { key: '5', description: 'Jump to 05: Edge Telemetry & Hardware' },
   { key: '6', description: 'Jump to 06: Official Maritime Report' },
   { key: '7', description: 'Jump to 07: SIH Project Pitch Deck' },
+  { key: '8', description: 'Jump to 08: Hardware Simulator (Thrusters/AUV)' },
   { key: 'J', description: 'Launch 60-Second Jury Tour Walkthrough' },
   { key: 'Space', description: 'Pause / Resume Live Waterfall Stream' },
   { key: 'S', description: 'Toggle Split-Screen Comparison (Studio)' },

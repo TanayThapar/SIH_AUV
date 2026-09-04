@@ -8,6 +8,7 @@ import SyntheticStudio from './components/SyntheticStudio';
 import EdgeMetricsView from './components/EdgeMetricsView';
 import ReportGenerator from './components/ReportGenerator';
 import SihPitchGuide from './components/SihPitchGuide';
+import HardwareSimulatorView from './components/HardwareSimulatorView';
 import InitialLoadingScreen from './components/InitialLoadingScreen';
 import JudgeTourModal from './components/JudgeTourModal';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
@@ -64,6 +65,9 @@ function DashboardContent() {
     } else if (e.key === '7') {
       setActiveTab('pitch');
       showToast('Hotkey [7]: SIH Pitch');
+    } else if (e.key === '8') {
+      setActiveTab('hardware');
+      showToast('Hotkey [8]: HW Simulator');
     } else if (e.key === 'j' || e.key === 'J') {
       setIsJudgeTourOpen((prev) => !prev);
     } else if (e.key === '?' || (e.shiftKey && e.key === '/')) {
@@ -212,6 +216,10 @@ function DashboardContent() {
 
             {activeTab === 'pitch' && (
               <SihPitchGuide />
+            )}
+
+            {activeTab === 'hardware' && (
+              <HardwareSimulatorView />
             )}
           </motion.div>
         </AnimatePresence>
